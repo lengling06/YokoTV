@@ -1,11 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
+import { isAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { RegistrationCode } from '@/lib/types';
-import { isAdmin } from '@/lib/auth';
-
-import { NextRequest } from 'next/server';
 
 export async function GET(req: NextRequest) {
   if (!isAdmin(req)) {
