@@ -20,6 +20,7 @@ export default function RegistrationCodesPage() {
   const [codes, setCodes] = useState<RegistrationCode[]>([]);
   const [count, setCount] = useState(1);
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
+  const [expandedCodes, setExpandedCodes] = useState<Set<string>>(new Set());
 
   const fetchCodes = async () => {
     const res = await fetch('/api/admin/registration-codes');
@@ -57,11 +58,37 @@ export default function RegistrationCodesPage() {
 
   const handleCopy = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
-      setCopySuccess(text);
-      setTimeout(() => setCopySuccess(null), 2000);
+      // 优先使用现代 Clipboard API
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        setCopySuccess(text);
+        setTimeout(() => setCopySuccess(null), 2000);
+        return;
+      }
+
+      // Fallback: 使用传统方法
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+
+      if (successful) {
+        setCopySuccess(text);
+        setTimeout(() => setCopySuccess(null), 2000);
+      } else {
+        // 最后的fallback：提示用户手动复制
+        prompt('请手动复制注册码：', text);
+      }
     } catch (err) {
-      // 复制失败，静默失败
+      // 完全失败时的fallback
+      prompt('请手动复制注册码：', text);
     }
   };
 
@@ -81,6 +108,16 @@ export default function RegistrationCodesPage() {
       default:
         return { text: status, color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-100 dark:bg-gray-900/30' };
     }
+  };
+
+  const toggleCodeExpansion = (codeId: string) => {
+    const newExpanded = new Set(expandedCodes);
+    if (newExpanded.has(codeId)) {
+      newExpanded.delete(codeId);
+    } else {
+      newExpanded.add(codeId);
+    }
+    setExpandedCodes(newExpanded);
   };
 
   const handleDelete = async (code: string) => {
@@ -132,22 +169,38 @@ export default function RegistrationCodesPage() {
               const statusDisplay = getStatusDisplay(code.status);
               return (
                 <tr key={code.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                        {code.code.slice(0, 8)}...{code.code.slice(-8)}
-                      </span>
-                      <button
-                        onClick={() => handleCopy(code.code)}
-                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                        title="复制注册码"
-                      >
-                        {copySuccess === code.code ? (
-                          <Check className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
+                      <div className="flex-1">
+                        <div 
+                          className="text-sm font-mono text-gray-900 dark:text-gray-100 cursor-pointer select-all"
+                          onClick={() => toggleCodeExpansion(code.code)}
+                          title="点击切换显示完整注册码"
+                        >
+                          {expandedCodes.has(code.code) 
+                            ? code.code 
+                            : `${code.code.slice(0, 8)}...${code.code.slice(-8)}`
+                          }
+                        </div>
+                        {expandedCodes.has(code.code) && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            点击收起 | 可直接选中复制
+                          </div>
                         )}
-                      </button>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={() => handleCopy(code.code)}
+                          className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                          title="点击复制注册码"
+                        >
+                          {copySuccess === code.code ? (
+                            <Check className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
