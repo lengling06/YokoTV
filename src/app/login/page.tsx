@@ -75,6 +75,7 @@ function LoginPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [shouldAskUsername, setShouldAskUsername] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const { siteName } = useSite();
 
@@ -83,8 +84,16 @@ function LoginPageClient() {
     if (typeof window !== 'undefined') {
       const storageType = (window as any).RUNTIME_CONFIG?.STORAGE_TYPE;
       setShouldAskUsername(storageType && storageType !== 'localstorage');
+
+      // 检查是否有成功消息
+      const message = searchParams.get('message');
+      if (message === 'registration_success') {
+        setSuccessMessage('注册成功！请使用您的账户和密码登录。');
+        // 3秒后清除消息
+        setTimeout(() => setSuccessMessage(''), 5000);
+      }
     }
-  }, []);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -162,6 +171,14 @@ function LoginPageClient() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+
+          {successMessage && (
+            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 mb-4">
+              <p className='text-sm text-green-800 dark:text-green-200'>
+                ✓ {successMessage}
+              </p>
+            </div>
+          )}
 
           {error && (
             <p className='text-sm text-red-600 dark:text-red-400'>{error}</p>

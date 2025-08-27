@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const [registrationCode, setRegistrationCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,9 +65,11 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // 注册成功，显示成功消息并跳转
-        alert('注册成功，即将跳转到登录页面');
-        router.push('/login');
+        // 注册成功，显示成功状态
+        setSuccess(true);
+        setTimeout(() => {
+          router.push('/login?message=registration_success');
+        }, 2000);
       } else {
         setError(data.error || '注册失败，请稍后重试');
       }
@@ -144,13 +147,24 @@ export default function RegisterPage() {
           <div>
             <button
               type='submit'
-              disabled={loading}
-              className='inline-flex w-full justify-center rounded-lg bg-green-600 py-3 text-base font-semibold text-white shadow-lg transition-all duration-200 hover:from-green-600 hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
+              disabled={loading || success}
+              className={`inline-flex w-full justify-center rounded-lg py-3 text-base font-semibold text-white shadow-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${success
+                  ? 'bg-green-500 hover:bg-green-500'
+                  : 'bg-green-600 hover:bg-green-700'
+                }`}
             >
-              {loading ? '注册中...' : '注册'}
+              {success ? '注册成功！即将跳转...' : loading ? '注册中...' : '注册'}
             </button>
           </div>
         </form>
+        {success && (
+          <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 mb-4">
+            <div className="text-green-800 dark:text-green-200 font-medium">
+              ✓ 注册成功！正在跳转到登录页面...
+            </div>
+          </div>
+        )}
+
         <div className='text-center'>
           <a href='/login' className='text-sm text-green-600 hover:underline'>
             已有账户？去登录

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { getConfig, setCachedConfig } from '@/lib/config';
 import { db } from '@/lib/db';
 
 // 用户名验证规则
@@ -86,6 +87,17 @@ export async function POST(req: Request) {
     // 创建用户
     await db.registerUser(username, password);
 
+    // 更新管理员配置，添加新用户到用户列表
+    const adminConfig = await getConfig();
+    const newUser = {
+      username: username,
+      role: 'user' as const,
+      banned: false,
+    };
+    adminConfig.UserConfig.Users.push(newUser);
+    await db.saveAdminConfig(adminConfig);
+    await setCachedConfig(adminConfig);
+
     // 更新注册码状态
     code.status = 'used';
     code.used_at = new Date().toISOString();
@@ -97,7 +109,7 @@ export async function POST(req: Request) {
       message: '注册成功，请登录'
     });
   } catch (error) {
-    console.error('注册失败:', error);
+    // 注册失败，记录错误
     return NextResponse.json(
       { error: '服务器内部错误，请稍后重试' },
       { status: 500 }

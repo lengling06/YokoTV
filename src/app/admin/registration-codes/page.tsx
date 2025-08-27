@@ -1,18 +1,25 @@
 'use client';
 
+import { Check, Copy, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { RegistrationCode } from '@/lib/types';
 
+// 统一按钮样式，与管理页面保持一致
 const buttonStyles = {
   primary: 'px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-colors',
+  success: 'px-3 py-1.5 text-sm font-medium bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg transition-colors',
   danger: 'px-3 py-1.5 text-sm font-medium bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-lg transition-colors',
+  secondary: 'px-3 py-1.5 text-sm font-medium bg-gray-600 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-lg transition-colors',
+  roundedSuccess: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/40 dark:hover:bg-green-900/60 dark:text-green-200 transition-colors',
   roundedDanger: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-900/60 dark:text-red-200 transition-colors',
+  roundedSecondary: 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-700/40 dark:hover:bg-gray-700/60 dark:text-gray-200 transition-colors',
 };
 
 export default function RegistrationCodesPage() {
   const [codes, setCodes] = useState<RegistrationCode[]>([]);
   const [count, setCount] = useState(1);
+  const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
   const fetchCodes = async () => {
     const res = await fetch('/api/admin/registration-codes');
@@ -46,6 +53,34 @@ export default function RegistrationCodesPage() {
       body: JSON.stringify(code),
     });
     fetchCodes();
+  };
+
+  const handleCopy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopySuccess(text);
+      setTimeout(() => setCopySuccess(null), 2000);
+    } catch (err) {
+      // 复制失败，静默失败
+    }
+  };
+
+  const toggleStatus = (code: RegistrationCode) => {
+    const newStatus = code.status === 'disabled' ? 'unused' : 'disabled';
+    handleUpdate({ ...code, status: newStatus });
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'unused':
+        return { text: '未使用', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-100 dark:bg-green-900/30' };
+      case 'used':
+        return { text: '已使用', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' };
+      case 'disabled':
+        return { text: '已禁用', color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' };
+      default:
+        return { text: status, color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-100 dark:bg-gray-900/30' };
+    }
   };
 
   const handleDelete = async (code: string) => {
@@ -93,38 +128,69 @@ export default function RegistrationCodesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {codes.map((code) => (
-              <tr key={code.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{code.code}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <select
-                    value={code.status}
-                    onChange={(e) =>
-                      handleUpdate({
-                        ...code,
-                        status: e.target.value as 'unused' | 'used' | 'disabled',
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  >
-                    <option value="unused">未使用</option>
-                    <option value="used">已使用</option>
-                    <option value="disabled">已禁用</option>
-                  </select>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{new Date(code.created_at).toLocaleString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{code.used_at ? new Date(code.used_at).toLocaleString() : '-'}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{code.used_by_user_id || '-'}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleDelete(code.code)}
-                    className={buttonStyles.roundedDanger}
-                  >
-                    删除
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {codes.map((code) => {
+              const statusDisplay = getStatusDisplay(code.status);
+              return (
+                <tr key={code.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
+                        {code.code.slice(0, 8)}...{code.code.slice(-8)}
+                      </span>
+                      <button
+                        onClick={() => handleCopy(code.code)}
+                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        title="复制注册码"
+                      >
+                        {copySuccess === code.code ? (
+                          <Check className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusDisplay.bg} ${statusDisplay.color}`}>
+                      {statusDisplay.text}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {new Date(code.created_at).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {code.used_at ? new Date(code.used_at).toLocaleString() : '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {code.used_by_user_id || '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <div className="flex items-center justify-end space-x-2">
+                      {code.status !== 'used' && (
+                        <button
+                          onClick={() => toggleStatus(code)}
+                          className={code.status === 'disabled' ? buttonStyles.roundedSuccess : buttonStyles.roundedSecondary}
+                          title={code.status === 'disabled' ? '启用注册码' : '禁用注册码'}
+                        >
+                          {code.status === 'disabled' ? (
+                            <><Check className="w-3 h-3 mr-1" />启用</>
+                          ) : (
+                            <><X className="w-3 h-3 mr-1" />禁用</>
+                          )}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(code.code)}
+                        className={buttonStyles.roundedDanger}
+                        title="删除注册码"
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />删除
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
