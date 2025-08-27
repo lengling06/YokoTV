@@ -378,9 +378,11 @@ export class UpstashRedisStorage implements IStorage {
 
   async addRegistrationCodes(codes: string[]): Promise<void> {
     const pipeline = this.client.pipeline();
-    for (const code of codes) {
+    const currentTime = Date.now();
+    for (let i = 0; i < codes.length; i++) {
+      const code = codes[i];
       const rCode: RegistrationCode = {
-        id: Date.now() + Math.random(),
+        id: currentTime + i, // 确保ID唯一性
         code,
         status: 'unused',
         created_at: new Date().toISOString(),

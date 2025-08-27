@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YokoTV 部署管理器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      font-size: 32px;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 16px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .section h3 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .section p {
+      color: #666;
+      margin-bottom: 15px;
+      line-height: 1.5;
+    }
+
+    .command-box {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 14px;
+      margin: 10px 0;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #4a5568;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .copy-btn:hover {
+      background: #2d3748;
+    }
+
+    .btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+      transition: background 0.3s;
+    }
+
+    .btn:hover {
+      background: #5a67d8;
+    }
+
+    .btn-secondary {
+      background: #718096;
+    }
+
+    .btn-secondary:hover {
+      background: #4a5568;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-running {
+      background: #48bb78;
+    }
+
+    .status-stopped {
+      background: #f56565;
+    }
+
+    .status-unknown {
+      background: #ed8936;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .alert-info {
+      background: #e6f3ff;
+      color: #0066cc;
+      border-left: 4px solid #0066cc;
+    }
+
+    .alert-success {
+      background: #f0fff4;
+      color: #065f46;
+      border-left: 4px solid #10b981;
+    }
+
+    .alert-warning {
+      background: #fffbeb;
+      color: #92400e;
+      border-left: 4px solid #f59e0b;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">🎬 YokoTV</div>
+      <div class="subtitle">部署管理器</div>
+    </div>
+
+    <!-- 快速部署 -->
+    <div class="section">
+      <h3>🚀 快速部署（推荐）</h3>
+      <p>使用预构建的 Docker 镜像，最快最简单的部署方式</p>
+
+      <div class="form-group">
+        <label for="imageTag">选择版本:</label>
+        <select id="imageTag">
+          <option value="latest">latest (最新版)</option>
+          <option value="v1.0.0">v1.0.0</option>
+          <option value="stable">stable</option>
+        </select>
+      </div>
+
+      <div class="command-box">
+        <button class="copy-btn" onclick="copyCommand('quickDeploy')">复制</button>
+        <div id="quickDeploy">
+          # 1. 下载更新脚本<br>
+          curl -fsSL https://raw.githubusercontent.com/MoonTechLab/LunaTV/main/scripts/update.sh -o update.sh<br>
+          chmod +x update.sh<br><br>
+          # 2. 执行更新<br>
+          ./update.sh <span id="selectedTag">latest</span>
+        </div>
+      </div>
+
+      <button class="btn" onclick="generateQuickDeploy()">生成命令</button>
+    </div>
+
+    <!-- 一键部署 -->
+    <div class="section">
+      <h3>📦 完整部署</h3>
+      <p>下载完整源码并部署，适合首次安装</p>
+
+      <div class="command-box">
+        <button class="copy-btn" onclick="copyCommand('fullDeploy')">复制</button>
+        <div id="fullDeploy">
+          # 下载并执行一键部署脚本<br>
+          curl -fsSL https://raw.githubusercontent.com/MoonTechLab/LunaTV/main/scripts/deploy.sh | bash
+        </div>
+      </div>
+
+      <button class="btn" onclick="copyCommand('fullDeploy')">复制命令</button>
+    </div>
+
+    <!-- 手动部署 -->
+    <div class="section">
+      <h3>🔧 手动部署</h3>
+      <p>适合需要自定义配置的高级用户</p>
+
+      <div class="command-box">
+        <button class="copy-btn" onclick="copyCommand('manualDeploy')">复制</button>
+        <div id="manualDeploy">
+          # 1. 下载源码<br>
+          wget https://github.com/MoonTechLab/LunaTV/archive/refs/heads/main.zip<br>
+          unzip main.zip<br>
+          cd LunaTV-main<br><br>
+          # 2. 配置环境<br>
+          cp .env.example .env<br>
+          nano .env<br><br>
+          # 3. 启动服务<br>
+          docker-compose up -d
+        </div>
+      </div>
+
+      <button class="btn" onclick="copyCommand('manualDeploy')">复制命令</button>
+    </div>
+
+    <!-- 服务管理 -->
+    <div class="section">
+      <h3>⚙️ 服务管理</h3>
+      <p>常用的服务管理命令</p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+        <button class="btn btn-secondary" onclick="copyToClipboard('docker-compose ps')">查看状态</button>
+        <button class="btn btn-secondary" onclick="copyToClipboard('docker-compose logs -f')">查看日志</button>
+        <button class="btn btn-secondary" onclick="copyToClipboard('docker-compose restart')">重启服务</button>
+        <button class="btn btn-secondary" onclick="copyToClipboard('docker-compose down')">停止服务</button>
+      </div>
+    </div>
+
+    <!-- 状态信息 -->
+    <div class="alert alert-info">
+      <strong>💡 提示:</strong>
+      <ul style="margin-top: 10px; padding-left: 20px;">
+        <li>首次部署建议使用"完整部署"</li>
+        <li>日常更新推荐使用"快速部署"</li>
+        <li>部署完成后访问 <code>http://localhost:3000</code></li>
+        <li>默认用户名/密码在 <code>.env</code> 文件中配置</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // 更新标签选择
+    document.getElementById('imageTag').addEventListener('change', function () {
+      document.getElementById('selectedTag').textContent = this.value;
+    });
+
+    // 生成快速部署命令
+    function generateQuickDeploy() {
+      const tag = document.getElementById('imageTag').value;
+      document.getElementById('selectedTag').textContent = tag;
+    }
+
+    // 复制命令到剪贴板
+    function copyCommand(elementId) {
+      const element = document.getElementById(elementId);
+      const text = element.textContent.replace(/\n/g, '\n').replace(/<br>/g, '\n');
+      copyToClipboard(text);
+    }
+
+    // 复制文本到剪贴板
+    function copyToClipboard(text) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('命令已复制到剪贴板!');
+        });
+      } else {
+        // 兼容老浏览器
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('命令已复制到剪贴板!');
+      }
+    }
+
+    // 显示提示消息
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #48bb78;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                z-index: 1000;
+                font-size: 14px;
+            `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => document.body.removeChild(toast), 300);
+      }, 2000);
+    }
+
+    // 检查服务状态（如果在同一服务器）
+    async function checkServiceStatus() {
+      try {
+        const response = await fetch('/health');
+        if (response.ok) {
+          return 'running';
+        }
+      } catch (e) {
+        // 忽略错误
+      }
+      return 'unknown';
+    }
+  </script>
+</body>
+
+</html>

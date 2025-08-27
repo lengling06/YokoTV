@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import CryptoJS from 'crypto-js';
 
 /**
@@ -52,6 +53,42 @@ export class SimpleCrypto {
       const decrypted = this.decrypt(encryptedData, password);
       return decrypted.length > 0;
     } catch {
+      return false;
+    }
+  }
+}
+
+/**
+ * 密码哈希工具类
+ * 用于安全地存储用户密码
+ */
+export class PasswordHasher {
+  /**
+   * 哈希密码
+   * @param password 原始密码
+   * @returns 哈希后的密码字符串 (salt:hash)
+   */
+  static hashPassword(password: string): string {
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+    return `${salt}:${hash}`;
+  }
+
+  /**
+   * 验证密码
+   * @param password 原始密码
+   * @param hashedPassword 哈希后的密码
+   * @returns 密码是否匹配
+   */
+  static verifyPassword(password: string, hashedPassword: string): boolean {
+    try {
+      const [salt, hash] = hashedPassword.split(':');
+      if (!salt || !hash) {
+        return false;
+      }
+      const verifyHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+      return hash === verifyHash;
+    } catch (error) {
       return false;
     }
   }

@@ -19,10 +19,33 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // 前端验证
+    if (!username.trim() || !password.trim() || !registrationCode.trim()) {
+      setError('请填写所有必填项');
+      return;
+    }
+
+    if (username.length < 3 || username.length > 20) {
+      setError('用户名长度必须在3-20个字符之间');
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+      setError('用户名只能包含字母、数字、下划线和短横线');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('密码长度至少6个字符');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('两次输入的密码不一致');
       return;
     }
+
     setLoading(true);
 
     try {
@@ -32,19 +55,23 @@ export default function RegisterPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username,
+          username: username.trim(),
           password,
-          registration_code: registrationCode,
+          registration_code: registrationCode.trim(),
         }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
+        // 注册成功，显示成功消息并跳转
+        alert('注册成功，即将跳转到登录页面');
         router.push('/login');
       } else {
-        const { error } = await res.json();
-        setError(error);
+        setError(data.error || '注册失败，请稍后重试');
       }
     } catch (err) {
+      console.error('注册错误:', err);
       setError('网络错误，请稍后重试');
     } finally {
       setLoading(false);
