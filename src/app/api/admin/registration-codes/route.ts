@@ -5,8 +5,10 @@ import { db } from '@/lib/db';
 import { RegistrationCode } from '@/lib/types';
 import { isAdmin } from '@/lib/auth';
 
-export async function GET() {
-  if (!isAdmin()) {
+import { NextRequest } from 'next/server';
+
+export async function GET(req: NextRequest) {
+  if (!isAdmin(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -14,8 +16,8 @@ export async function GET() {
   return NextResponse.json(codes);
 }
 
-export async function POST(req: Request) {
-  if (!isAdmin()) {
+export async function POST(req: NextRequest) {
+  if (!isAdmin(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -25,8 +27,8 @@ export async function POST(req: Request) {
   return NextResponse.json({ success: true });
 }
 
-export async function PUT(req: Request) {
-  if (!isAdmin()) {
+export async function PUT(req: NextRequest) {
+  if (!isAdmin(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -35,8 +37,8 @@ export async function PUT(req: Request) {
   return NextResponse.json({ success: true });
 }
 
-export async function DELETE(req: Request) {
-  if (!isAdmin()) {
+export async function DELETE(req: NextRequest) {
+  if (!isAdmin(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

@@ -183,7 +183,7 @@ function LoginPageClient() {
             href="/register"
             className="text-sm text-green-600 hover:underline"
           >
-            Don't have an account? Register
+            还没有账户？去注册
           </a>
         </div>
       </div>

@@ -6,6 +6,7 @@ export function getAuthInfoFromCookie(request: NextRequest): {
   username?: string;
   signature?: string;
   timestamp?: number;
+  role?: 'owner' | 'admin' | 'user';
 } | null {
   const authCookie = request.cookies.get('auth');
 
@@ -74,7 +75,7 @@ export function getAuthInfoFromBrowserCookie(): {
   }
 }
 
-export function isAdmin(): boolean {
-  const authInfo = getAuthInfoFromBrowserCookie();
+export function isAdmin(req?: NextRequest): boolean {
+  const authInfo = req ? getAuthInfoFromCookie(req) : getAuthInfoFromBrowserCookie();
   return authInfo?.role === 'admin' || authInfo?.role === 'owner';
 }
