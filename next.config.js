@@ -3,27 +3,15 @@
 
 const nextConfig = {
   output: 'standalone',
+  eslint: {
+    dirs: ['src'],
+  },
 
   reactStrictMode: false,
-  swcMinify: true, // 启用 SWC 压缩器，大幅提升构建速度
+  swcMinify: false,
 
   experimental: {
     instrumentationHook: process.env.NODE_ENV === 'production',
-    // 启用并行路由构建
-    parallelServerCompiles: true,
-    parallelServerBuildTraces: true,
-  },
-
-  // 优化构建性能
-  typescript: {
-    // 构建时忽略类型错误（CI 中单独运行类型检查）
-    ignoreBuildErrors: true,
-  },
-
-  eslint: {
-    dirs: ['src'],
-    // 构建时忽略 ESLint 错误（CI 中单独运行）
-    ignoreDuringBuilds: true,
   },
 
   // Uncoment to add domain whitelist
@@ -86,11 +74,6 @@ const withPWA = require('next-pwa')({
   disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
-  buildExcludes: [/middleware-manifest\.json$/], // 排除不必要的文件
-  dynamicStartUrl: false, // 禁用动态起始URL
-  fallbacks: {
-    document: '/offline', // 简化离线回退
-  },
 });
 
 module.exports = withPWA(nextConfig);
