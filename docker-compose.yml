@@ -1,6 +1,6 @@
 services:
   yokotv-core:
-    image: ghcr.io/lengling06/YokoTV:latest
+    image: ghcr.io/lengling06/yokotv:latest
     container_name: yokotv-core
     restart: on-failure
     ports:

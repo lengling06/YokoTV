@@ -30,7 +30,7 @@ jobs:
           - platform: linux/amd64
             os: ubuntu-latest
           - platform: linux/arm64
-            os: ubuntu-24.04-arm
+            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -40,6 +40,9 @@ jobs:
 
       - name: Checkout source code
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -60,7 +63,7 @@ jobs:
         uses: docker/metadata-action@v5
 
         with:
-          images: ghcr.io/lengling06/YokoTV
+          images: ghcr.io/lengling06/yokotv
           tags: |
             type=raw,value=${{ github.event.inputs.tag || 'latest' }},enable={{is_default_branch}}
 
@@ -72,8 +75,8 @@ jobs:
           file: ./Dockerfile
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          tags: ghcr.io/lengling06/YokoTV:${{ github.event.inputs.tag || 'latest' }}
-          outputs: type=image,name=ghcr.io/lengling06/YokoTV,name-canonical=true,push=true
+          tags: ghcr.io/lengling06/yokotv:${{ github.event.inputs.tag || 'latest' }}
+          outputs: type=image,name=ghcr.io/lengling06/yokotv,name-canonical=true,push=true
 
       - name: Export digest
         run: |
@@ -118,8 +121,8 @@ jobs:
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create -t ghcr.io/lengling06/YokoTV:${{ github.event.inputs.tag || 'latest' }} \
-            $(printf 'ghcr.io/lengling06/YokoTV@sha256:%s ' *)
+          docker buildx imagetools create -t ghcr.io/lengling06/yokotv:${{ github.event.inputs.tag || 'latest' }} \
+            $(printf 'ghcr.io/lengling06/yokotv@sha256:%s ' *)
 
   cleanup-refresh:
     runs-on: ubuntu-latest
