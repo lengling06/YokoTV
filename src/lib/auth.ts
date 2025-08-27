@@ -47,6 +47,11 @@ export function getAuthInfoFromBrowserCookie(): {
           acc[key] = value;
         }
       }
+      
+      export function isAdmin(): boolean {
+        const authInfo = getAuthInfoFromBrowserCookie();
+        return authInfo?.role === 'admin' || authInfo?.role === 'owner';
+      }
 
       return acc;
     }, {} as Record<string, string>);

@@ -178,6 +178,14 @@ function LoginPageClient() {
             {loading ? '登录中...' : '登录'}
           </button>
         </form>
+        <div className="text-center">
+          <a
+            href="/register"
+            className="text-sm text-green-600 hover:underline"
+          >
+            Don't have an account? Register
+          </a>
+        </div>
       </div>
 
       {/* 版本信息显示 */}

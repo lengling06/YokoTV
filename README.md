@@ -71,9 +71,9 @@
 
 ```yml
 services:
-  moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
-    container_name: moontv-core
+  yokotv-core:
+    image: ghcr.io/lengling06/YokoTV:latest
+    container_name: yokotv-core
     restart: on-failure
     ports:
       - '3000:3000'
@@ -105,9 +105,9 @@ volumes:
 
 ```yml
 services:
-  moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
-    container_name: moontv-core
+  yokotv-core:
+    image: ghcr.io/lengling06/YokoTV:latest
+    container_name: yokotv-core
     restart: on-failure
     ports:
       - '3000:3000'
@@ -141,9 +141,9 @@ networks:
 3. 使用如下 docker compose
 ```yml
 services:
-  moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
-    container_name: moontv-core
+  yokotv-core:
+    image: ghcr.io/lengling06/YokoTV:latest
+    container_name: yokotv-core
     restart: on-failure
     ports:
       - '3000:3000'

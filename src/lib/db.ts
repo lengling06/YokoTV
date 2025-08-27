@@ -239,6 +239,27 @@ export class DbManager {
       throw new Error('存储类型不支持清空数据操作');
     }
   }
+
+  // ---------- 注册码相关 ----------
+  async addRegistrationCodes(codes: string[]): Promise<void> {
+    await (this.storage as any).addRegistrationCodes(codes);
+  }
+
+  async getRegistrationCode(code: string) {
+    return (this.storage as any).getRegistrationCode(code);
+  }
+
+  async updateRegistrationCode(code: any) {
+    await (this.storage as any).updateRegistrationCode(code);
+  }
+
+  async deleteRegistrationCode(code: string) {
+    await (this.storage as any).deleteRegistrationCode(code);
+  }
+
+  async getAllRegistrationCodes() {
+    return (this.storage as any).getAllRegistrationCodes();
+  }
 }
 
 // 导出默认实例

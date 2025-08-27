@@ -3,7 +3,13 @@
 import { createClient, RedisClientType } from 'redis';
 
 import { AdminConfig } from './admin.types';
-import { Favorite, IStorage, PlayRecord, SkipConfig } from './types';
+import {
+  Favorite,
+  IStorage,
+  PlayRecord,
+  RegistrationCode,
+  SkipConfig,
+} from './types';
 
 // 搜索历史最大条数
 const SEARCH_HISTORY_LIMIT = 20;
@@ -462,5 +468,51 @@ export abstract class BaseRedisStorage implements IStorage {
       console.error('清空数据失败:', error);
       throw new Error('清空数据失败');
     }
+  }
+
+  // ---------- 注册码 ----------
+  private rCodeKey(code: string) {
+    return `rcode:${code}`;
+  }
+
+  async addRegistrationCodes(codes: string[]): Promise<void> {
+    const pipeline = this.client.multi();
+    for (const code of codes) {
+      const rCode: RegistrationCode = {
+        id: Date.now() + Math.random(),
+        code,
+        status: 'unused',
+        created_at: new Date().toISOString(),
+      };
+      pipeline.set(this.rCodeKey(code), JSON.stringify(rCode));
+    }
+    await this.withRetry(() => pipeline.exec());
+  }
+
+  async getRegistrationCode(
+    code: string
+  ): Promise<RegistrationCode | null | undefined> {
+    const val = await this.withRetry(() => this.client.get(this.rCodeKey(code)));
+    return val ? (JSON.parse(val) as RegistrationCode) : null;
+  }
+
+  async updateRegistrationCode(code: RegistrationCode): Promise<void> {
+    await this.withRetry(() =>
+      this.client.set(this.rCodeKey(code.code), JSON.stringify(code))
+    );
+  }
+
+  async deleteRegistrationCode(code: string): Promise<void> {
+    await this.withRetry(() => this.client.del(this.rCodeKey(code)));
+  }
+
+  async getAllRegistrationCodes(): Promise<RegistrationCode[]> {
+    const pattern = `rcode:*`;
+    const keys: string[] = await this.withRetry(() => this.client.keys(pattern));
+    if (keys.length === 0) return [];
+    const values = await this.withRetry(() => this.client.mGet(keys));
+    return values
+      .map((val) => (val ? (JSON.parse(val) as RegistrationCode) : null))
+      .filter((v): v is RegistrationCode => v !== null);
   }
 }

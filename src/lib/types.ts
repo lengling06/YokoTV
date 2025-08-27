@@ -83,6 +83,25 @@ export interface IStorage {
 
   // 数据清理相关
   clearAllData(): Promise<void>;
+
+  // ---------- 注册码相关 ----------
+  addRegistrationCodes(codes: string[]): Promise<void>;
+  getRegistrationCode(
+    code: string
+  ): Promise<RegistrationCode | null | undefined>;
+  updateRegistrationCode(code: RegistrationCode): Promise<void>;
+  deleteRegistrationCode(code: string): Promise<void>;
+  getAllRegistrationCodes(): Promise<RegistrationCode[]>;
+}
+
+// 注册码数据结构
+export interface RegistrationCode {
+  id: number;
+  code: string;
+  status: 'unused' | 'used' | 'disabled';
+  created_at: string;
+  used_at?: string;
+  used_by_user_id?: number;
 }
 
 // 搜索结果数据结构
